@@ -43,7 +43,7 @@ export type ProfileUpdateInput = {
 };
 
 export async function updateProfile(input: ProfileUpdateInput): Promise<Profile> {
-  const body = Object.fromEntries(
+  const body: Record<string, any> = Object.fromEntries(
     Object.entries(input).filter(([, v]) => v !== undefined && v !== ""),
   );
   if (DEMO_MODE) {
