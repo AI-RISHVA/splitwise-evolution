@@ -1,238 +1,163 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Receipt } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
+import { Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/hooks/useAuth";
-import { DEMO_MODE } from "@/lib/api-client";
-import type { Gender } from "@/lib/types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { login, register, googleLoginUrl, type RegisterInput } from "@/lib/auth";
+import { DEMO_MODE } from "@/lib/config";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Login or Register — Splitwise" },
-      { name: "description", content: "Sign in to your Splitwise account or create a new one." },
-      { property: "og:title", content: "Login or Register — Splitwise" },
-      { property: "og:description", content: "Sign in to your Splitwise account or create a new one." },
+      { title: "Sign in — Splitly" },
+      { name: "description", content: "Log in or create your Splitly account to split expenses." },
+      { property: "og:title", content: "Sign in — Splitly" },
+      { property: "og:description", content: "Log in or create your Splitly account." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
 });
 
-const errMsg = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong");
+const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,15}$/;
 
 function AuthPage() {
-  const { login, register, isAuthenticated, ready } = useAuth();
-  const navigate = useNavigate();
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (ready && isAuthenticated) navigate({ to: "/dashboard", replace: true });
-  }, [ready, isAuthenticated, navigate]);
-
-  const [loginForm, setLoginForm] = useState({ username: "", password: "" });
-  const [signupForm, setSignupForm] = useState({
-    firstname: "",
-    lastname: "",
-    username: "",
-    gender: "male" as Gender,
-    mobile_no: "",
-    email: "",
-    password: "",
-  });
-
-  const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setBusy(true);
-    try {
-      await login(loginForm.username, loginForm.password);
-      toast.success("Welcome back!");
-      navigate({ to: "/dashboard" });
-    } catch (error) {
-      toast.error(errMsg(error));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleRegister = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setBusy(true);
-    try {
-      await register(signupForm);
-      await login(signupForm.username, signupForm.password);
-      toast.success("Account created");
-      navigate({ to: "/dashboard" });
-    } catch (error) {
-      toast.error(errMsg(error));
-    } finally {
-      setBusy(false);
-    }
-  };
-
+  const [tab, setTab] = useState("login");
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted px-4 py-10">
-      <div className="w-full max-w-md">
-        <div className="mb-6 flex items-center justify-center gap-2">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Receipt className="size-5" />
-          </span>
-          <span className="text-xl font-semibold text-foreground">Splitwise</span>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/30 px-4 py-10">
+      <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-lg sm:p-8">
+        <div className="mb-6 flex items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <Wallet className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold">Splitly</h1>
+            <p className="text-xs text-muted-foreground">Split expenses, stay friends</p>
+          </div>
         </div>
-
-        <Tabs defaultValue="login">
-          <TabsList className="grid w-full grid-cols-2">
+        {DEMO_MODE && (
+          <p className="mb-4 rounded-md bg-accent px-3 py-2 text-xs text-accent-foreground">
+            Demo mode: backend not connected yet — any details will log you in.
+          </p>
+        )}
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList className="mb-4 grid w-full grid-cols-2">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="login" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Welcome back</CardTitle>
-                <CardDescription>
-                  {DEMO_MODE ? "Demo mode: username demouser, any password." : "Sign in with your username."}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form className="grid gap-4" onSubmit={handleLogin}>
-                  <div className="grid gap-2">
-                    <Label htmlFor="login-username">Username</Label>
-                    <Input
-                      id="login-username"
-                      value={loginForm.username}
-                      onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <Input
-                      id="login-password"
-                      type="password"
-                      value={loginForm.password}
-                      onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" disabled={busy}>
-                    {busy ? "Signing in…" : "Login"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="register" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Create your account</CardTitle>
-                <CardDescription>It only takes a minute.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleRegister}>
-                  <div className="grid gap-2">
-                    <Label htmlFor="firstname">First name</Label>
-                    <Input
-                      id="firstname"
-                      value={signupForm.firstname}
-                      onChange={(e) => setSignupForm({ ...signupForm, firstname: e.target.value })}
-                      required
-                      minLength={3}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="lastname">Last name</Label>
-                    <Input
-                      id="lastname"
-                      value={signupForm.lastname}
-                      onChange={(e) => setSignupForm({ ...signupForm, lastname: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="username">Username</Label>
-                    <Input
-                      id="username"
-                      value={signupForm.username}
-                      onChange={(e) => setSignupForm({ ...signupForm, username: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="gender">Gender</Label>
-                    <Select
-                      value={signupForm.gender}
-                      onValueChange={(value) => setSignupForm({ ...signupForm, gender: value as Gender })}
-                    >
-                      <SelectTrigger id="gender">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2 sm:col-span-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={signupForm.email}
-                      onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2 sm:col-span-2">
-                    <Label htmlFor="mobile">Mobile number</Label>
-                    <Input
-                      id="mobile"
-                      inputMode="numeric"
-                      maxLength={10}
-                      value={signupForm.mobile_no}
-                      onChange={(e) =>
-                        setSignupForm({ ...signupForm, mobile_no: e.target.value.replace(/\D/g, "") })
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2 sm:col-span-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={signupForm.password}
-                      onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      8–15 characters with upper, lower, a digit and a special character.
-                    </p>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Button type="submit" className="w-full" disabled={busy}>
-                      {busy ? "Creating…" : "Create account"}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          <TabsContent value="login"><LoginForm /></TabsContent>
+          <TabsContent value="register"><RegisterForm onDone={() => setTab("login")} /></TabsContent>
         </Tabs>
+        {!DEMO_MODE && (
+          <Button variant="outline" className="mt-4 w-full" asChild>
+            <a href={googleLoginUrl()}>Continue with Google</a>
+          </Button>
+        )}
       </div>
     </div>
+  );
+}
+
+function LoginForm() {
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await login(username.trim(), password);
+      toast.success("Welcome back!");
+      navigate({ to: "/" });
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="space-y-1.5">
+        <Label htmlFor="lu">Username</Label>
+        <Input id="lu" required value={username} onChange={(e) => setUsername(e.target.value.toUpperCase())} placeholder="RISHVA01" />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="lp">Password</Label>
+        <Input id="lp" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+      </div>
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? "Logging in..." : "Login"}
+      </Button>
+    </form>
+  );
+}
+
+function RegisterForm({ onDone }: { onDone: () => void }) {
+  const [f, setF] = useState<RegisterInput>({
+    firstname: "", lastname: "", username: "", gender: "male", mobile_no: "", email: "", password: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const set = (k: keyof RegisterInput, v: string) => setF((p) => ({ ...p, [k]: v }));
+
+  function validate(): string | null {
+    if (f.firstname.length < 3 || f.lastname.length < 3) return "First and last name need at least 3 letters";
+    if (!/^[A-Z0-9]{5,}$/.test(f.username)) return "Username: 5+ characters, only CAPITAL letters and numbers";
+    if (!/^\d{10}$/.test(f.mobile_no)) return "Mobile number must be 10 digits";
+    if (!PASSWORD_RE.test(f.password)) return "Password: 8-15 chars with upper, lower, number and a symbol (@$!%*?&)";
+    return null;
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    const err = validate();
+    if (err) {
+      toast.error(err);
+      return;
+    }
+    setLoading(true);
+    try {
+      await register(f);
+      toast.success("Account created! Please log in.");
+      onDone();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5"><Label>First name</Label><Input required value={f.firstname} onChange={(e) => set("firstname", e.target.value)} /></div>
+        <div className="space-y-1.5"><Label>Last name</Label><Input required value={f.lastname} onChange={(e) => set("lastname", e.target.value)} /></div>
+      </div>
+      <div className="space-y-1.5"><Label>Username</Label><Input required value={f.username} onChange={(e) => set("username", e.target.value.toUpperCase())} placeholder="RISHVA01" /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Gender</Label>
+          <Select value={f.gender} onValueChange={(v) => set("gender", v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5"><Label>Mobile</Label><Input required inputMode="numeric" maxLength={10} value={f.mobile_no} onChange={(e) => set("mobile_no", e.target.value.replace(/\D/g, ""))} /></div>
+      </div>
+      <div className="space-y-1.5"><Label>Email</Label><Input type="email" required value={f.email} onChange={(e) => set("email", e.target.value)} /></div>
+      <div className="space-y-1.5"><Label>Password</Label><Input type="password" required value={f.password} onChange={(e) => set("password", e.target.value)} /></div>
+      <Button type="submit" className="w-full" disabled={loading}>{loading ? "Creating..." : "Create account"}</Button>
+    </form>
   );
 }
