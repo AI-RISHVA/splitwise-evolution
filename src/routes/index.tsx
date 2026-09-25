@@ -1,90 +1,150 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { ArrowRight, PieChart, Receipt, Users } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowDownLeft, ArrowUpRight, Plus, Users, Wallet } from "lucide-react";
+
+import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
+import { demoActivity, demoGroups, demoTotals, formatMoney } from "@/lib/demo-data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Splitwise — Share expenses without the awkward math" },
+      { title: "Dashboard — Splitly" },
       {
         name: "description",
-        content: "Split bills with friends and groups, track who owes whom, and settle up in seconds.",
+        content: "See what you owe, what you are owed, and your latest shared expenses.",
       },
-      { property: "og:title", content: "Splitwise — Share expenses without the awkward math" },
+      { property: "og:title", content: "Dashboard — Splitly" },
       {
         property: "og:description",
-        content: "Split bills with friends and groups, track who owes whom, and settle up in seconds.",
+        content: "See what you owe, what you are owed, and your latest shared expenses.",
       },
     ],
   }),
-  component: Index,
+  component: Dashboard,
 });
 
-function Index() {
-  const { isAuthenticated, ready } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (ready && isAuthenticated) navigate({ to: "/dashboard", replace: true });
-  }, [ready, isAuthenticated, navigate]);
+function StatCard({
+  label,
+  value,
+  tone,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  tone: "neutral" | "positive" | "negative";
+  icon: typeof Wallet;
+}) {
+  const toneClass =
+    tone === "positive"
+      ? "text-success"
+      : tone === "negative"
+        ? "text-destructive"
+        : "text-foreground";
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Receipt className="size-5" />
-          </span>
-          <span className="text-lg font-semibold text-foreground">Splitwise</span>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/auth">Login</Link>
-        </Button>
-      </header>
-
-      <section className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-          Share expenses without the awkward math
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-          Add an expense once, split it equally, unequally or by percentage, and always know exactly
-          who owes whom.
-        </p>
-        <div className="mt-8 flex justify-center gap-3">
-          <Button asChild size="lg">
-            <Link to="/auth">
-              Get started <ArrowRight className="size-4" />
-            </Link>
-          </Button>
-        </div>
-      </section>
-
-      <section className="mx-auto grid max-w-5xl gap-4 px-4 pb-20 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <Users className="size-6 text-primary" />
-            <CardTitle className="mt-2 text-base">Groups &amp; friends</CardTitle>
-            <CardDescription>Trips, flatmates, dinners — keep every circle separate.</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <PieChart className="size-6 text-primary" />
-            <CardTitle className="mt-2 text-base">Flexible splits</CardTitle>
-            <CardDescription>Equal, unequal or percentage — with live totals.</CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <Receipt className="size-6 text-primary" />
-            <CardTitle className="mt-2 text-base">Simple settle up</CardTitle>
-            <CardDescription>Record payments and clear balances in one tap.</CardDescription>
-          </CardHeader>
-        </Card>
-      </section>
+    <div className="surface-card p-5">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Icon className="size-4" />
+        {label}
+      </div>
+      <p className={`mt-3 text-2xl font-semibold tracking-tight ${toneClass}`}>{value}</p>
     </div>
+  );
+}
+
+function Dashboard() {
+  const net = demoTotals.owed - demoTotals.owe;
+
+  return (
+    <AppShell title="Dashboard" description="Aapka overall balance aur recent activity">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard
+          label="Total balance"
+          value={formatMoney(net)}
+          tone={net >= 0 ? "positive" : "negative"}
+          icon={Wallet}
+        />
+        <StatCard
+          label="You are owed"
+          value={formatMoney(demoTotals.owed)}
+          tone="positive"
+          icon={ArrowDownLeft}
+        />
+        <StatCard
+          label="You owe"
+          value={formatMoney(demoTotals.owe)}
+          tone="negative"
+          icon={ArrowUpRight}
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-5">
+        <section className="surface-card lg:col-span-3">
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <h2 className="font-semibold">Recent activity</h2>
+            <Link to="/activity" className="text-sm font-medium text-primary hover:underline">
+              View all
+            </Link>
+          </div>
+          <ul className="divide-y divide-border">
+            {demoActivity.map((item) => (
+              <li key={item.id} className="flex items-center gap-4 px-5 py-4">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{item.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {item.detail} · {item.when}
+                  </p>
+                </div>
+                <span
+                  className={`text-sm font-semibold ${
+                    item.amount >= 0 ? "text-success" : "text-destructive"
+                  }`}
+                >
+                  {formatMoney(item.amount)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="surface-card lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <h2 className="font-semibold">Your groups</h2>
+            <Link to="/groups" className="text-sm font-medium text-primary hover:underline">
+              View all
+            </Link>
+          </div>
+          <ul className="divide-y divide-border">
+            {demoGroups.slice(0, 4).map((group) => (
+              <li key={group.id} className="flex items-center gap-3 px-5 py-4">
+                <span className="flex size-9 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+                  <Users className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{group.name}</p>
+                  <p className="text-xs text-muted-foreground">{group.members} members</p>
+                </div>
+                <span
+                  className={`text-sm font-semibold ${
+                    group.balance === 0
+                      ? "text-muted-foreground"
+                      : group.balance > 0
+                        ? "text-success"
+                        : "text-destructive"
+                  }`}
+                >
+                  {group.balance === 0 ? "settled" : formatMoney(group.balance)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="p-4">
+            <Button variant="secondary" className="w-full gap-1.5">
+              <Plus className="size-4" /> Create a group
+            </Button>
+          </div>
+        </section>
+      </div>
+    </AppShell>
   );
 }

@@ -10,21 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedFriendsRouteImport } from './routes/_authenticated/friends'
-import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
-import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as FriendsRouteImport } from './routes/friends'
+import { Route as GroupsRouteImport } from './routes/groups'
+import { Route as ProfileRouteImport } from './routes/profile'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const ActivityRoute = ActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -32,96 +31,69 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
-  id: '/activity',
-  path: '/activity',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedFriendsRoute = AuthenticatedFriendsRouteImport.update({
+const FriendsRoute = FriendsRouteImport.update({
   id: '/friends',
   path: '/friends',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
+const GroupsRoute = GroupsRouteImport.update({
   id: '/groups',
   path: '/groups',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/auth': typeof AuthRoute
-  '/activity': typeof AuthenticatedActivityRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
-  '/friends': typeof AuthenticatedFriendsRoute
-  '/groups': typeof AuthenticatedGroupsRoute
-  '/profile': typeof AuthenticatedProfileRoute
+  '/friends': typeof FriendsRoute
+  '/groups': typeof GroupsRoute
+  '/profile': typeof ProfileRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/auth': typeof AuthRoute
-  '/activity': typeof AuthenticatedActivityRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
-  '/friends': typeof AuthenticatedFriendsRoute
-  '/groups': typeof AuthenticatedGroupsRoute
-  '/profile': typeof AuthenticatedProfileRoute
+  '/friends': typeof FriendsRoute
+  '/groups': typeof GroupsRoute
+  '/profile': typeof ProfileRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/activity': typeof ActivityRoute
   '/auth': typeof AuthRoute
-  '/_authenticated/activity': typeof AuthenticatedActivityRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/friends': typeof AuthenticatedFriendsRoute
-  '/_authenticated/groups': typeof AuthenticatedGroupsRoute
-  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/friends': typeof FriendsRoute
+  '/groups': typeof GroupsRoute
+  '/profile': typeof ProfileRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/auth'
-    | '/activity'
-    | '/dashboard'
-    | '/friends'
-    | '/groups'
-    | '/profile'
+  fullPaths: '/' | '/activity' | '/auth' | '/friends' | '/groups' | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/auth'
-    | '/activity'
-    | '/dashboard'
-    | '/friends'
-    | '/groups'
-    | '/profile'
+  to: '/' | '/activity' | '/auth' | '/friends' | '/groups' | '/profile'
   id:
     | '__root__'
     | '/'
-    | '/_authenticated'
+    | '/activity'
     | '/auth'
-    | '/_authenticated/activity'
-    | '/_authenticated/dashboard'
-    | '/_authenticated/friends'
-    | '/_authenticated/groups'
-    | '/_authenticated/profile'
+    | '/friends'
+    | '/groups'
+    | '/profile'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ActivityRoute: typeof ActivityRoute
   AuthRoute: typeof AuthRoute
+  FriendsRoute: typeof FriendsRoute
+  GroupsRoute: typeof GroupsRoute
+  ProfileRoute: typeof ProfileRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -133,11 +105,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+    '/activity': {
+      id: '/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof ActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -147,67 +119,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/activity': {
-      id: '/_authenticated/activity'
-      path: '/activity'
-      fullPath: '/activity'
-      preLoaderRoute: typeof AuthenticatedActivityRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/friends': {
-      id: '/_authenticated/friends'
+    '/friends': {
+      id: '/friends'
       path: '/friends'
       fullPath: '/friends'
-      preLoaderRoute: typeof AuthenticatedFriendsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof FriendsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/groups': {
-      id: '/_authenticated/groups'
+    '/groups': {
+      id: '/groups'
       path: '/groups'
       fullPath: '/groups'
-      preLoaderRoute: typeof AuthenticatedGroupsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof GroupsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/profile': {
-      id: '/_authenticated/profile'
+    '/profile': {
+      id: '/profile'
       path: '/profile'
       fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedProfileRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedFriendsRoute: typeof AuthenticatedFriendsRoute
-  AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
-  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-}
-
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedActivityRoute: AuthenticatedActivityRoute,
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedFriendsRoute: AuthenticatedFriendsRoute,
-  AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
-  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-}
-
-const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ActivityRoute: ActivityRoute,
   AuthRoute: AuthRoute,
+  FriendsRoute: FriendsRoute,
+  GroupsRoute: GroupsRoute,
+  ProfileRoute: ProfileRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
