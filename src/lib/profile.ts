@@ -48,10 +48,10 @@ export async function updateProfile(input: ProfileUpdateInput): Promise<Profile>
   );
   if (DEMO_MODE) {
     await wait();
-    if ((body.email && !body.email_otp) || (body.mobile_no && !body.mobile_otp))
+    if ((body["email"] && !body["email_otp"]) || (body["mobile_no"] && !body["mobile_otp"]))
       throw new Error("OTP is required.");
-    delete body.email_otp;
-    delete body.mobile_otp;
+    delete body["email_otp"];
+    delete body["mobile_otp"];
     demoProfile = { ...demoProfile, ...body };
     return { ...demoProfile };
   }
