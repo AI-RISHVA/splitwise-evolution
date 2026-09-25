@@ -125,7 +125,7 @@ function DetailsForm({ profile, onSaved }: { profile: Profile; onSaved: (p: Prof
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (firstname.trim().length < 3 || lastname.trim().length < 3)
-      return toast.error("First and last name must be at least 3 characters");
+      return void toast.error("First and last name must be at least 3 characters");
     setBusy(true);
     try {
       onSaved(await updateProfile({ firstname: firstname.trim(), lastname: lastname.trim(), gender }));
@@ -184,8 +184,8 @@ function OtpField({
   const valid = type === "tel" ? /^\d{10}$/.test(value) : /^\S+@\S+\.\S+$/.test(value);
 
   const send = async () => {
-    if (!valid) return toast.error(type === "tel" ? "Enter a 10-digit mobile number" : "Enter a valid email");
-    if (value === current) return toast.error("This is already your current " + label.toLowerCase());
+    if (!valid) return void toast.error(type === "tel" ? "Enter a 10-digit mobile number" : "Enter a valid email");
+    if (value === current) return void toast.error("This is already your current " + label.toLowerCase());
     setBusy(true);
     try {
       toast.success(await sendProfileOtp(purpose, value));
@@ -198,7 +198,7 @@ function OtpField({
   };
 
   const verify = async () => {
-    if (!/^\d{6}$/.test(otp)) return toast.error("OTP must be 6 digits");
+    if (!/^\d{6}$/.test(otp)) return void toast.error("OTP must be 6 digits");
     setBusy(true);
     try {
       const p = await updateProfile(
@@ -260,12 +260,12 @@ function PasswordForm() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!f.old_password) return toast.error("Enter your current password");
+    if (!f.old_password) return void toast.error("Enter your current password");
     if (!PASSWORD_RE.test(f.new_password))
-      return toast.error("New password: 8-15 chars with upper, lower, number and special (@$!%*?&)");
-    if (f.new_password === f.old_password) return toast.error("New password must be different");
-    if (f.new_password !== f.confirm_password) return toast.error("Passwords do not match");
-    if (!/^\d{6}$/.test(f.otp)) return toast.error("OTP must be 6 digits");
+      return void toast.error("New password: 8-15 chars with upper, lower, number and special (@$!%*?&)");
+    if (f.new_password === f.old_password) return void toast.error("New password must be different");
+    if (f.new_password !== f.confirm_password) return void toast.error("Passwords do not match");
+    if (!/^\d{6}$/.test(f.otp)) return void toast.error("OTP must be 6 digits");
     setBusy(true);
     try {
       await changePassword(f);
