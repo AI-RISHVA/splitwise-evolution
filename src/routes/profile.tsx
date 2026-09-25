@@ -260,7 +260,6 @@ function PasswordForm() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!f.old_password) return void toast.error("Enter your current password");
     if (!PASSWORD_RE.test(f.new_password))
       return void toast.error("New password: 8-15 chars with upper, lower, number and special (@$!%*?&)");
     if (f.new_password === f.old_password) return void toast.error("New password must be different");
@@ -278,10 +277,6 @@ function PasswordForm() {
   return (
     <Section title="Change password" desc="Needs your current password and an OTP">
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="op">Current password</Label>
-          <Input id="op" type="password" value={f.old_password} onChange={set("old_password")} />
-        </div>
         <div className="space-y-2">
           <Label htmlFor="np">New password</Label>
           <Input id="np" type="password" value={f.new_password} onChange={set("new_password")} />
