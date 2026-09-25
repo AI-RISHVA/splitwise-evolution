@@ -5,7 +5,7 @@
  * backend. When it is empty the app runs in demo mode with local fake data.
  */
 
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+export const API_BASE_URL = (import.meta.env["VITE_API_BASE_URL"] ?? "").replace(/\/$/, "");
 export const DEMO_MODE = API_BASE_URL === "";
 
 const ACCESS_KEY = "sw_access_token";
@@ -76,7 +76,11 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     if (token) headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, { method, headers, body: payload });
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers,
+    body: payload ?? null,
+  });
 
   let data: unknown = null;
   const text = await response.text();
